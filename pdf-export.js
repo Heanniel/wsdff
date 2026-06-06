@@ -23,9 +23,14 @@ function descargarPdf(doc, nombreArchivo) {
     doc.save(nombreArchivo);
 }
 
-function estiloTabla() {
+function toNum(valor) {
+    const n = Number(valor);
+    return Number.isFinite(n) ? n : 0;
+}
+
+function estiloTabla(startY) {
     return {
-        startY: 42,
+        startY: startY ?? 42,
         headStyles: {
             fillColor: [16, 67, 88],
             textColor: [255, 255, 255],
@@ -35,6 +40,62 @@ function estiloTabla() {
         styles: { fontSize: 9, cellPadding: 3 },
         margin: { left: 14, right: 14 },
     };
+}
+
+function formatearCantidadesCompra(compra) {
+    const partes = [];
+    if (compra.cant_10kg) partes.push(`${compra.cant_10kg}x10kg`);
+    if (compra.cant_18kg) partes.push(`${compra.cant_18kg}x18kg`);
+    if (compra.cant_27kg) partes.push(`${compra.cant_27kg}x27kg`);
+    if (compra.cant_43kg) partes.push(`${compra.cant_43kg}x43kg`);
+    return partes.length > 0 ? partes.join(', ') : '-';
+}
+
+async function agregarTablaCompradoresPdf(doc, calleFiltro, periodoDias, startY) {
+    let url = `/bombonas/historial-ventas?periodo=${periodoDias}`;
+    if (calleFiltro) {
+        url += `&calle=${encodeURIComponent(calleFiltro)}`;
+    }
+
+    const response = await fetch(url);
+    const data = await response.json();
+    const compradores = data.historial || [];
+
+    doc.setFontSize(11);
+    doc.setTextColor(16, 67, 88);
+    doc.text(`Personas que compraron (últimos ${periodoDias} días)`, 14, startY);
+
+    if (compradores.length === 0) {
+        doc.setFontSize(9);
+        doc.setTextColor(100, 100, 100);
+        doc.text('No hay compradores registrados en este periodo.', 14, startY + 6);
+        return;
+    }
+
+    const body = compradores.map((compra) => [
+        compra.cedula || '-',
+        `${compra.nombre || ''} ${compra.apellido || ''}`.trim(),
+        compra.calle || '-',
+        formatearCantidadesCompra(compra),
+        `${parseFloat(compra.monto_pagado || 0).toFixed(2)} Bs.`,
+        compra.metodo_pago || '-',
+        new Date(compra.fecha_pago).toLocaleString('es-VE'),
+    ]);
+
+    doc.autoTable({
+        ...estiloTabla(startY + 5),
+        head: [['Cédula', 'Beneficiario', 'Calle', 'Cantidades', 'Monto', 'Método', 'Fecha']],
+        body,
+        columnStyles: {
+            0: { cellWidth: 22 },
+            1: { cellWidth: 32 },
+            2: { cellWidth: 20 },
+            3: { cellWidth: 28 },
+            4: { halign: 'right', cellWidth: 22 },
+            5: { cellWidth: 22 },
+            6: { cellWidth: 32 },
+        },
+    });
 }
 
 async function descargarPdfEstadisticasCalles() {
@@ -51,24 +112,24 @@ async function descargarPdfEstadisticasCalles() {
 
         const body = data.estadisticas.map((est) => [
             est.calle,
-            String(est.total_personas || 0),
-            String(est.personas_con_registro || 0),
-            String(est.total_cilindros || 0),
-            String(est.total_10kg || 0),
-            String(est.total_18kg || 0),
-            String(est.total_27kg || 0),
-            String(est.total_43kg || 0),
+            String(toNum(est.total_personas)),
+            String(toNum(est.personas_con_registro)),
+            String(toNum(est.total_cilindros)),
+            String(toNum(est.total_10kg)),
+            String(toNum(est.total_18kg)),
+            String(toNum(est.total_27kg)),
+            String(toNum(est.total_43kg)),
         ]);
 
         const totales = data.estadisticas.reduce(
             (acc, est) => ({
-                personas: acc.personas + (est.total_personas || 0),
-                registro: acc.registro + (est.personas_con_registro || 0),
-                cilindros: acc.cilindros + (est.total_cilindros || 0),
-                kg10: acc.kg10 + (est.total_10kg || 0),
-                kg18: acc.kg18 + (est.total_18kg || 0),
-                kg27: acc.kg27 + (est.total_27kg || 0),
-                kg43: acc.kg43 + (est.total_43kg || 0),
+                personas: acc.personas + toNum(est.total_personas),
+                registro: acc.registro + toNum(est.personas_con_registro),
+                cilindros: acc.cilindros + toNum(est.total_cilindros),
+                kg10: acc.kg10 + toNum(est.total_10kg),
+                kg18: acc.kg18 + toNum(est.total_18kg),
+                kg27: acc.kg27 + toNum(est.total_27kg),
+                kg43: acc.kg43 + toNum(est.total_43kg),
             }),
             { personas: 0, registro: 0, cilindros: 0, kg10: 0, kg18: 0, kg27: 0, kg43: 0 }
         );
@@ -90,6 +151,10 @@ async function descargarPdfEstadisticasCalles() {
             body,
             footStyles: { fillColor: [21, 152, 149], textColor: [255, 255, 255], fontStyle: 'bold' },
         });
+
+        const periodoDias = 15;
+        const startYCompradores = doc.lastAutoTable.finalY + 12;
+        await agregarTablaCompradoresPdf(doc, null, periodoDias, startYCompradores);
 
         const fecha = new Date().toISOString().slice(0, 10);
         descargarPdf(doc, `estadisticas-calles-${fecha}.pdf`);
@@ -115,8 +180,8 @@ async function descargarPdfEstadisticasVentas(calleFiltro) {
         }
 
         const titulo = calleFiltro
-            ? `Estadísticas de Ventas — ${calleFiltro} (últimos 15 días)`
-            : 'Estadísticas de Ventas por Calle (últimos 15 días)';
+            ? `Estadísticas de Ventas — ${calleFiltro} `
+            : 'Estadísticas de Ventas por Calle ';
 
         const doc = crearPdfBase(titulo);
 
@@ -132,16 +197,16 @@ async function descargarPdfEstadisticasVentas(calleFiltro) {
 
         const totales = data.estadisticas.reduce(
             (acc, est) => ({
-                bombonas: acc.bombonas + (est.total_bombonas || 0),
-                kg10: acc.kg10 + (est.total_10kg || 0),
-                m10: acc.m10 + parseFloat(est.monto_10kg || 0),
-                kg18: acc.kg18 + (est.total_18kg || 0),
-                m18: acc.m18 + parseFloat(est.monto_18kg || 0),
-                kg27: acc.kg27 + (est.total_27kg || 0),
-                m27: acc.m27 + parseFloat(est.monto_27kg || 0),
-                kg43: acc.kg43 + (est.total_43kg || 0),
-                m43: acc.m43 + parseFloat(est.monto_43kg || 0),
-                monto: acc.monto + parseFloat(est.total_monto || 0),
+                bombonas: acc.bombonas + toNum(est.total_bombonas),
+                kg10: acc.kg10 + toNum(est.total_10kg),
+                m10: acc.m10 + toNum(est.monto_10kg),
+                kg18: acc.kg18 + toNum(est.total_18kg),
+                m18: acc.m18 + toNum(est.monto_18kg),
+                kg27: acc.kg27 + toNum(est.total_27kg),
+                m27: acc.m27 + toNum(est.monto_27kg),
+                kg43: acc.kg43 + toNum(est.total_43kg),
+                m43: acc.m43 + toNum(est.monto_43kg),
+                monto: acc.monto + toNum(est.total_monto),
             }),
             { bombonas: 0, kg10: 0, m10: 0, kg18: 0, m18: 0, kg27: 0, m27: 0, kg43: 0, m43: 0, monto: 0 }
         );
@@ -167,6 +232,10 @@ async function descargarPdfEstadisticasVentas(calleFiltro) {
                 6: { halign: 'right' },
             },
         });
+
+        const periodoDias = data.periodo_dias || 15;
+        const startYCompradores = doc.lastAutoTable.finalY + 12;
+        await agregarTablaCompradoresPdf(doc, calleFiltro, periodoDias, startYCompradores);
 
         const fecha = new Date().toISOString().slice(0, 10);
         const sufijo = calleFiltro ? calleFiltro.replace(/\s+/g, '-').toLowerCase() : 'todas';

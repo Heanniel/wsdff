@@ -466,20 +466,29 @@ app.post('/bombonas/comprar', (req, res) => {
         });
     });
 });
-// RUTA PARA OBTENER EL HISTORIAL DE VENTAS REALES (Con soporte para filtrar por calle)
+// RUTA PARA OBTENER EL HISTORIAL DE VENTAS REALES (Con soporte para filtrar por calle y periodo)
 app.get('/bombonas/historial-ventas', (req, res) => {
-    const { calle } = req.query;
+    const { calle, periodo } = req.query;
     let query = `
-        SELECT p.nombre, p.apellido, pb.monto_pagado, pb.metodo_pago, pb.fecha_pago, p.calle,
+        SELECT p.id_persona, p.cedula, p.nombre, p.apellido, pb.monto_pagado, pb.metodo_pago, pb.fecha_pago, p.calle,
                pb.cant_10kg, pb.cant_18kg, pb.cant_27kg, pb.cant_43kg, pb.referencia_texto, pb.referencia_foto
         FROM pagos_bombonas pb
         JOIN registro_bombonas rb ON pb.id_registro = rb.id_registro
         JOIN personas p ON rb.id_persona = p.id_persona
     `;
     const params = [];
+    const condiciones = [];
+
+    if (periodo && !isNaN(parseInt(periodo))) {
+        condiciones.push('pb.fecha_pago > DATE_SUB(NOW(), INTERVAL ? DAY)');
+        params.push(parseInt(periodo));
+    }
     if (calle && calle !== 'null' && calle !== 'undefined') {
-        query += ` WHERE p.calle = ?`;
+        condiciones.push('p.calle = ?');
         params.push(calle);
+    }
+    if (condiciones.length > 0) {
+        query += ` WHERE ${condiciones.join(' AND ')}`;
     }
     query += ` ORDER BY pb.fecha_pago DESC`;
 
