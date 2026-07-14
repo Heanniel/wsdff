@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Panel de Administrador</title>
     <link rel="stylesheet" href="admin.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <link rel="stylesheet" href="notifications.css" />
+    <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css" />
+    <link rel="stylesheet" href="/vendor/flatpickr/flatpickr.min.css" />
+    <link rel="stylesheet" href="/vendor/tom-select/tom-select.css" />
+    <script src="/vendor/jspdf/jspdf.umd.min.js"></script>
+    <script src="/vendor/jspdf/jspdf.plugin.autotable.min.js"></script>
   </head>
 
   <body>
@@ -90,11 +91,12 @@
           </p>
         </div>
         <div class="user-profile">
-          <img
-            src="https://ui-avatars.com/api/?name=Admin&background=1a5f7a&color=fff"
-            alt="Avatar"
-            style="width: 45px; border-radius: 12px"
-          />
+          <div
+            aria-label="Avatar"
+            style="width: 45px; height: 45px; border-radius: 12px; background: #1a5f7a; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.2rem"
+          >
+            <i class="fas fa-user"></i>
+          </div>
         </div>
       </header>
 
@@ -705,9 +707,9 @@
             </form>
         </div>
      </div>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    <script src="/vendor/flatpickr/flatpickr.min.js"></script>
+    <script src="/vendor/flatpickr/l10n-es.js"></script>
+    <script src="/vendor/tom-select/tom-select.complete.min.js"></script>
     <script src="ui-enhancements.js"></script>
     <script src="personas-module.js"></script>
     <script src="scripts.js"></script>
@@ -757,7 +759,8 @@
         document.body.appendChild(modal);
 
         document.getElementById('btn-cancelar').onclick = () => modal.remove();
-        document.getElementById('btn-confirmar').onclick = () => {
+        document.getElementById('btn-confirmar').onclick = async () => {
+          try { await fetch('/logout', { method: 'POST' }); } catch (e) {}
           sessionStorage.removeItem("usuario");
           window.location.href = "/login.html";
         };

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Servicio Comunitario</title>
     <link rel="stylesheet" href="login.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css">
 </head>
 <body>
     <div class="login_contenedor">
@@ -23,7 +23,7 @@
 
             <div class="cuadros-texto">
                 <i class="fas fa-id-card"></i>
-                <input type="text" id="usuario" name="usuario" placeholder="Cédula" required pattern="^\d{6,12}$" title="Ingrese solo números para la cédula">
+                <input type="text" id="usuario" name="usuario" placeholder="Cédula o usuario" required pattern="^[A-Za-z0-9]{3,50}$" title="Ingrese su cédula o nombre de usuario">
             </div>
             
             <div class="cuadros-texto">

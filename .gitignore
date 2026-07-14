@@ -1,0 +1,20 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno y secretos
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Subidas de usuarios (fotos de referencia de pagos)
+uploads/
+
+# Sistema operativo / editores
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/

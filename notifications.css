@@ -1,0 +1,89 @@
+/* ============================================================================
+   Notificaciones unificadas (éxito / error / advertencia)
+   Se usan en todas las páginas mediante mostrarMensajeExito / -Error / -Advertencia.
+   ============================================================================ */
+
+.toast-noti-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 67, 88, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  animation: toastNotiFadeIn 0.25s ease;
+}
+
+.toast-noti {
+  background: #fff;
+  padding: 2.5rem 2rem;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  min-width: 320px;
+  max-width: 420px;
+  animation: toastNotiSlideUp 0.35s ease;
+}
+
+.toast-noti-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 1.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 2rem;
+}
+
+/* Variantes de color por tipo */
+.toast-exito .toast-noti-icon {
+  background: linear-gradient(135deg, #159895 0%, #104358 100%);
+  box-shadow: 0 8px 24px rgba(21, 152, 149, 0.35);
+}
+.toast-error .toast-noti-icon {
+  background: linear-gradient(135deg, #e74c3c 0%, #a93226 100%);
+  box-shadow: 0 8px 24px rgba(231, 76, 60, 0.35);
+}
+.toast-advertencia .toast-noti-icon {
+  background: linear-gradient(135deg, #f39c12 0%, #d68910 100%);
+  box-shadow: 0 8px 24px rgba(243, 156, 18, 0.35);
+}
+
+.toast-noti h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.35rem;
+  color: #104358;
+}
+.toast-error h3 { color: #a93226; }
+.toast-advertencia h3 { color: #b9770e; }
+
+.toast-noti p {
+  margin: 0 0 1.5rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.toast-noti-btn {
+  min-width: 140px;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #fff;
+  background: linear-gradient(135deg, #159895 0%, #104358 100%);
+}
+.toast-error .toast-noti-btn { background: linear-gradient(135deg, #e74c3c 0%, #a93226 100%); }
+.toast-advertencia .toast-noti-btn { background: linear-gradient(135deg, #f39c12 0%, #d68910 100%); }
+
+@keyframes toastNotiFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes toastNotiSlideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}

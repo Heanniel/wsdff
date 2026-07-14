@@ -2,24 +2,42 @@
 let listaPersonasBombona = []; 
 let personaSeleccionada = null; 
 
-function mostrarMensajeExito(titulo, mensaje, icono = 'fa-circle-check') {
+// Notificación unificada. tipo: 'exito' | 'error' | 'advertencia'
+function mostrarNotificacion(tipo, titulo, mensaje, icono) {
+    const iconosPorDefecto = {
+        exito: 'fa-circle-check',
+        error: 'fa-circle-xmark',
+        advertencia: 'fa-triangle-exclamation'
+    };
+    const ic = icono || iconosPorDefecto[tipo] || 'fa-circle-info';
+
     const overlay = document.createElement('div');
-    overlay.className = 'toast-exito-overlay';
+    overlay.className = 'toast-noti-overlay';
     overlay.innerHTML = `
-        <div class="toast-exito">
-            <div class="toast-exito-icon"><i class="fas ${icono}"></i></div>
+        <div class="toast-noti toast-${tipo}">
+            <div class="toast-noti-icon"><i class="fas ${ic}"></i></div>
             <h3>${titulo}</h3>
             <p>${mensaje}</p>
-            <button type="button" class="btn-submit toast-exito-btn">Aceptar</button>
+            <button type="button" class="toast-noti-btn">Aceptar</button>
         </div>
     `;
     document.body.appendChild(overlay);
 
     const cerrar = () => overlay.remove();
-    overlay.querySelector('.toast-exito-btn').onclick = cerrar;
+    overlay.querySelector('.toast-noti-btn').onclick = cerrar;
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) cerrar();
     });
+}
+
+function mostrarMensajeExito(titulo, mensaje, icono) {
+    mostrarNotificacion('exito', titulo, mensaje, icono);
+}
+function mostrarMensajeError(titulo, mensaje, icono) {
+    mostrarNotificacion('error', titulo, mensaje, icono);
+}
+function mostrarMensajeAdvertencia(titulo, mensaje, icono) {
+    mostrarNotificacion('advertencia', titulo, mensaje, icono);
 }
 
 // 1. FUNCIÓN PRINCIPAL DE NAVEGACIÓN
@@ -189,7 +207,7 @@ function prepararFormularioRegistro() {
                 setTimeout(() => alertDiv.remove(), 4000);
             }
         } else {
-            alert("Por favor, selecciona una persona de la lista.");
+            mostrarMensajeAdvertencia("Atención", "Por favor, selecciona una persona de la lista.");
         }
         return;
     }
@@ -204,7 +222,7 @@ function prepararFormularioRegistro() {
 
 // 5. Guardar Registro
 async function guardarNuevoRegistroBombona() {
-    if (!personaSeleccionada) return alert("Debe seleccionar un usuario primero.");
+    if (!personaSeleccionada) return mostrarMensajeAdvertencia("Atención", "Debe seleccionar un usuario primero.");
 
     const qty10 = parseInt(document.getElementById('qty-10kg').value) || 0;
     const qty18 = parseInt(document.getElementById('qty-18kg').value) || 0;
@@ -212,7 +230,7 @@ async function guardarNuevoRegistroBombona() {
     const qty43 = parseInt(document.getElementById('qty-43kg').value) || 0;
 
     if (qty10 === 0 && qty18 === 0 && qty27 === 0 && qty43 === 0) {
-        return alert("Debe indicar la cantidad de al menos un tipo de cilindro.");
+        return mostrarMensajeAdvertencia("Atención", "Debe indicar la cantidad de al menos un tipo de cilindro.");
     }
 
     try {
@@ -243,10 +261,10 @@ async function guardarNuevoRegistroBombona() {
             mostrarSeccion('registro-bombonas'); 
         } else {
             const err = await response.json();
-            alert(err.error); 
+            mostrarMensajeError("Error", err.error || "Ocurrió un error.");
         }
     } catch (e) {
-        alert("Error de conexión");
+        mostrarMensajeError("Error de conexión", "No se pudo conectar con el servidor.");
     }
 }
 
@@ -319,7 +337,7 @@ async function actualizarRegistro(id) {
     });
     
     if (res.ok) {
-        alert("¡Cambio guardado!");
+        mostrarMensajeExito("¡Listo!", "El cambio se guardó correctamente.");
         if (typeof cargarEstadisticas === 'function') {
             cargarEstadisticas();
         }
@@ -334,7 +352,7 @@ async function eliminarRegistro(id) {
     
     const res = await fetch(`/bombonas/eliminar/${id}`, { method: 'DELETE' });
     if (res.ok) {
-        alert("Registro eliminado");
+        mostrarMensajeExito("Registro eliminado", "El registro se eliminó correctamente.");
         if (typeof cargarEstadisticas === 'function') {
             cargarEstadisticas();
         }
@@ -415,44 +433,43 @@ async function validarYProcesarVenta() {
     const metodo = document.getElementById('v-metodo').value;
     const referenciaTexto = document.getElementById('v-referencia-texto').value.trim();
     const referenciaFotoInput = document.getElementById('v-referencia-foto');
-    let referenciaFoto = null;
-
-    if (referenciaFotoInput && referenciaFotoInput.files.length > 0) {
-        const file = referenciaFotoInput.files[0];
-        referenciaFoto = file.name;
-    }
+    const referenciaFotoFile = (referenciaFotoInput && referenciaFotoInput.files.length > 0)
+        ? referenciaFotoInput.files[0]
+        : null;
 
     if (qty10 === 0 && qty18 === 0 && qty27 === 0 && qty43 === 0) {
-        return alert("⚠️ Error: Debe ingresar al menos una cantidad de bombonas.");
+        return mostrarMensajeAdvertencia("Atención", "Debe ingresar al menos una cantidad de bombonas.");
     }
     if (!monto || monto <= 0) {
-        return alert("⚠️ Error: Debe ingresar un monto válido.");
+        return mostrarMensajeAdvertencia("Atención", "Debe ingresar un monto válido.");
     }
-    if ((metodo === 'Pago Móvil' || metodo === 'Transferencia') && !referenciaTexto && !referenciaFoto) {
-        return alert("⚠️ Error: Para pagos electrónicos debe agregar referencia (texto o foto).");
+    if ((metodo === 'Pago Móvil' || metodo === 'Transferencia') && !referenciaTexto && !referenciaFotoFile) {
+        return mostrarMensajeAdvertencia("Atención", "Para pagos electrónicos debe agregar referencia (texto o foto).");
     }
 
     const registro = window.registroVentaActual;
-    if (!registro) return alert("❌ Error: No se ha seleccionado un beneficiario.");
+    if (!registro) return mostrarMensajeError("Error", "No se ha seleccionado un beneficiario.");
 
-    const datosVenta = {
-        id_registro: registro.id_registro,
-        id_persona: registro.id_persona,
-        qty10: qty10,
-        qty18: qty18,
-        qty27: qty27,
-        qty43: qty43,
-        monto: monto,
-        metodo: metodo,
-        referencia_texto: referenciaTexto,
-        referencia_foto: referenciaFoto
-    };
+    // Se envía como FormData para poder subir la imagen real (no solo el nombre).
+    const datosVenta = new FormData();
+    datosVenta.append('id_registro', registro.id_registro);
+    datosVenta.append('id_persona', registro.id_persona);
+    datosVenta.append('qty10', qty10);
+    datosVenta.append('qty18', qty18);
+    datosVenta.append('qty27', qty27);
+    datosVenta.append('qty43', qty43);
+    datosVenta.append('monto', monto);
+    datosVenta.append('metodo', metodo);
+    datosVenta.append('referencia_texto', referenciaTexto);
+    if (referenciaFotoFile) {
+        datosVenta.append('referencia_foto', referenciaFotoFile);
+    }
 
     try {
+        // Sin cabecera Content-Type: el navegador la define con el boundary de multipart.
         const response = await fetch('/bombonas/comprar', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(datosVenta)
+            body: datosVenta
         });
 
         const resultado = await response.json();
@@ -476,18 +493,20 @@ async function validarYProcesarVenta() {
 
             cargarTablaParaVentas();
             cargarHistorialVentas();
-            if (resultado.actualizar_estadisticas) {
+            // Refrescar siempre las estadísticas por calle para que no queden desactualizadas
+            // dentro de un mismo ciclo de ventas.
+            if (typeof actualizarEstadisticasVentasPorCalle === 'function') {
                 actualizarEstadisticasVentasPorCalle();
             }
             if (typeof cargarEstadisticas === 'function') {
                 cargarEstadisticas();
             }
         } else {
-            alert("⚠️ Atención: " + (resultado.error || "No se pudo procesar la venta"));
+            mostrarMensajeAdvertencia("Atención", resultado.error || "No se pudo procesar la venta.");
         }
     } catch (error) {
         console.error("Error en la comunicación:", error);
-        alert("❌ Error de conexión con el servidor.");
+        mostrarMensajeError("Error de conexión", "No se pudo conectar con el servidor.");
     }
 }
 
@@ -524,7 +543,11 @@ async function cargarHistorialVentas() {
                     referenciaHTML += `<span style="margin-right: 5px;">📝 ${v.referencia_texto}</span>`;
                 }
                 if (v.referencia_foto) {
-                    referenciaHTML += `<span style="margin-right: 5px;">📷 Foto</span>`;
+                    if (String(v.referencia_foto).startsWith('/uploads/')) {
+                        referenciaHTML += `<a href="${v.referencia_foto}" target="_blank" rel="noopener" style="margin-right: 5px;">📷 Ver foto</a>`;
+                    } else {
+                        referenciaHTML += `<span style="margin-right: 5px;">📷 Foto</span>`;
+                    }
                 }
             }
 
@@ -868,32 +891,32 @@ if (formEditar) {
         }
 
         if (!regexSoloNumeros.test(cedula)) {
-            alert("La cédula debe contener únicamente números.");
+            mostrarMensajeAdvertencia("Dato inválido", "La cédula debe contener únicamente números.");
             return;
         }
 
         if (!regexSoloLetas.test(nombre)) {
-            alert("El nombre no puede contener números ni caracteres especiales.");
+            mostrarMensajeAdvertencia("Dato inválido", "El nombre no puede contener números ni caracteres especiales.");
             return;
         }
 
         if (!regexSoloLetas.test(apellido)) {
-            alert("El apellido no puede contener números ni caracteres especiales.");
+            mostrarMensajeAdvertencia("Dato inválido", "El apellido no puede contener números ni caracteres especiales.");
             return;
         }
 
         if (edad && (parseInt(edad) < 0 || parseInt(edad) > 120)) {
-            alert("Por favor, introduce una edad válida (entre 0 y 120 años).");
+            mostrarMensajeAdvertencia("Dato inválido", "Por favor, introduce una edad válida (entre 0 y 120 años).");
             return;
         }
 
         if (celular && !regexSoloNumeros.test(celular.replace(/[-\s]/g, ""))) {
-            alert("El número de celular debe contener solo dígitos numéricos.");
+            mostrarMensajeAdvertencia("Dato inválido", "El número de celular debe contener solo dígitos numéricos.");
             return;
         }
 
         if (carga_familiar && parseInt(carga_familiar) < 0) {
-            alert("La carga familiar no puede ser un número negativo.");
+            mostrarMensajeAdvertencia("Dato inválido", "La carga familiar no puede ser un número negativo.");
             return;
         }
 
@@ -925,11 +948,11 @@ if (formEditar) {
                 cerrarModalEditar();
                 if (typeof cargarPersonas === 'function') cargarPersonas();
             } else {
-                alert(result.error || "Ocurrió un error al actualizar");
+                mostrarMensajeError("Error", result.error || "Ocurrió un error al actualizar.");
             }
         } catch (error) {
             console.error("Error en la conexión:", error);
-            alert("Error de red al intentar conectar con el servidor");
+            mostrarMensajeError("Error de red", "No se pudo conectar con el servidor.");
         }
     });
 }

@@ -6,11 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Trabajo | Gestión Social</title>
     <link rel="stylesheet" href="admin.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <link rel="stylesheet" href="notifications.css">
+    <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/vendor/flatpickr/flatpickr.min.css">
+    <link rel="stylesheet" href="/vendor/tom-select/tom-select.css">
+    <script src="/vendor/jspdf/jspdf.umd.min.js"></script>
+    <script src="/vendor/jspdf/jspdf.plugin.autotable.min.js"></script>
 </head>
 
 <body>
@@ -342,7 +343,15 @@
         // Setup UI
         const name = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim() || 'Operador';
         document.getElementById('panel-title').innerHTML = `Panel de Trabajo <span style="font-weight: 300; font-size: 1.1rem; color: var(--text-muted); margin-left: 10px;">| ${name}</span>`;
-        const avatarUrl = `https://ui-avatars.com/api/?name=${name}+&background=159895&color=fff&size=128`;
+        // Avatar de iniciales generado localmente (SVG data-URI), sin depender de servicios externos.
+        function avatarDataURI(nombre, bg) {
+            const iniciales = (nombre || '')
+                .split(/\s+/).filter(Boolean).slice(0, 2)
+                .map(p => p[0].toUpperCase()).join('') || 'U';
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128"><rect width="128" height="128" fill="${bg}"/><text x="50%" y="52%" dy=".35em" text-anchor="middle" font-family="Arial, sans-serif" font-size="56" fill="#fff">${iniciales}</text></svg>`;
+            return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+        }
+        const avatarUrl = avatarDataURI(name, '#159895');
         if (document.getElementById('user-avatar-top')) {
             document.getElementById('user-avatar-top').src = avatarUrl;
         }
@@ -411,16 +420,17 @@
             document.body.appendChild(modal);
 
             document.getElementById('btn-cancelar').onclick = () => modal.remove();
-            document.getElementById('btn-confirmar').onclick = () => {
+            document.getElementById('btn-confirmar').onclick = async () => {
+                try { await fetch('/logout', { method: 'POST' }); } catch (e) {}
                 sessionStorage.removeItem('usuario');
                 window.location.href = '/login.html';
             };
         }
 
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    <script src="/vendor/flatpickr/flatpickr.min.js"></script>
+    <script src="/vendor/flatpickr/l10n-es.js"></script>
+    <script src="/vendor/tom-select/tom-select.complete.min.js"></script>
     <script src="ui-enhancements.js"></script>
     <script src="scripts.js"></script>
     <script>

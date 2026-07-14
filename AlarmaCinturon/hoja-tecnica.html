@@ -1,0 +1,317 @@
+<style>
+  :root{
+    --bg:#eef2f6; --panel:#ffffff; --fig:#fbfcfd;
+    --ink:#16202e; --ink-soft:#54627a; --ink-faint:#8494a8;
+    --line:#d8e0e9; --line-strong:#b9c5d3;
+    --accent:#2f6fed;
+    --v5:#d64545; --gnd:#3b3b3b; --sig:#2f6fed; --ard:#1f9d55; --free:#9aa3ad; --warn:#b7791f;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --bg:#0e131a; --panel:#151d27; --ink:#e7edf5; --ink-soft:#a3b2c6; --ink-faint:#6f8195;
+           --line:#243040; --line-strong:#33465b; --accent:#6f9bff; }
+  }
+  :root[data-theme="light"]{ --bg:#eef2f6; --panel:#ffffff; --ink:#16202e; --ink-soft:#54627a; --ink-faint:#8494a8; --line:#d8e0e9; --line-strong:#b9c5d3; --accent:#2f6fed; }
+  :root[data-theme="dark"]{ --bg:#0e131a; --panel:#151d27; --ink:#e7edf5; --ink-soft:#a3b2c6; --ink-faint:#6f8195; --line:#243040; --line-strong:#33465b; --accent:#6f9bff; }
+
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  .sheet{
+    font-family:var(--sans); color:var(--ink); background:var(--bg);
+    line-height:1.55; padding:32px 20px; display:flex; justify-content:center;
+  }
+  .page{ width:100%; max-width:900px; display:flex; flex-direction:column; gap:22px; }
+
+  /* ---------- header ---------- */
+  header.masthead{
+    background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:26px 28px; position:relative; overflow:hidden;
+  }
+  header.masthead::before{
+    content:""; position:absolute; left:0; top:0; bottom:0; width:5px;
+    background:linear-gradient(var(--v5) 0 20%, var(--sig) 20% 60%, var(--ard) 60% 80%, var(--gnd) 80% 100%);
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--accent); font-weight:600; margin:0 0 8px;
+  }
+  h1{ font-size:27px; line-height:1.15; margin:0 0 6px; letter-spacing:-.01em; text-wrap:balance; }
+  .lead{ color:var(--ink-soft); font-size:14px; margin:0 0 16px; max-width:60ch; }
+  .meta{ display:flex; flex-wrap:wrap; gap:8px 10px; margin-top:4px; }
+  .chip{
+    font-family:var(--mono); font-size:11.5px; color:var(--ink-soft);
+    border:1px solid var(--line-strong); border-radius:6px; padding:3px 9px; background:transparent;
+  }
+  .formula{
+    margin-top:16px; font-family:var(--mono); font-size:14px; color:var(--ink);
+    background:color-mix(in srgb,var(--accent) 8%, transparent);
+    border:1px solid color-mix(in srgb,var(--accent) 28%, transparent);
+    border-radius:8px; padding:10px 14px; display:inline-block;
+  }
+  .formula b{ color:var(--accent); }
+  .formula .neg{ text-decoration:overline; }
+
+  /* ---------- sections ---------- */
+  section{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:22px 24px; }
+  .sec-head{ display:flex; align-items:baseline; gap:12px; margin:0 0 16px; }
+  .sec-num{ font-family:var(--mono); font-size:12px; color:var(--accent); font-weight:600; }
+  h2{ font-size:15px; letter-spacing:.02em; margin:0; text-transform:uppercase; }
+  .sec-note{ margin-left:auto; font-size:12px; color:var(--ink-faint); }
+
+  figure{ margin:0; background:var(--fig); border:1px solid var(--line); border-radius:10px; padding:10px; overflow-x:auto; }
+  figure svg{ width:100%; height:auto; min-width:640px; display:block; }
+  figcaption{ font-size:12px; color:var(--ink-faint); margin-top:8px; text-align:center; }
+
+  /* ---------- table ---------- */
+  .tbl-wrap{ overflow-x:auto; }
+  table{ width:100%; border-collapse:collapse; font-size:13px; min-width:520px; }
+  th,td{ text-align:left; padding:8px 12px; border-bottom:1px solid var(--line); }
+  thead th{ font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); font-weight:600; }
+  tbody td:first-child,tbody td:nth-child(2){ font-family:var(--mono); }
+  tr:last-child td{ border-bottom:none; }
+  .w{ display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:6px; vertical-align:-1px; }
+  .legend{ display:flex; flex-wrap:wrap; gap:14px; margin:2px 0 16px; font-size:12px; color:var(--ink-soft); font-family:var(--mono); }
+
+  /* ---------- notes ---------- */
+  .notes{ display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px; }
+  .note{ border:1px solid var(--line); border-radius:10px; padding:14px 16px; background:transparent; }
+  .note h3{ font-size:13px; margin:0 0 8px; display:flex; align-items:center; gap:7px; }
+  .note.tip h3{ color:var(--ard); } .note.warn h3{ color:var(--warn); } .note.info h3{ color:var(--accent); }
+  .note p{ margin:0; font-size:12.5px; color:var(--ink-soft); }
+  .note code{ font-family:var(--mono); font-size:12px; background:color-mix(in srgb,var(--ink) 8%,transparent); padding:1px 5px; border-radius:4px; }
+
+  footer{ text-align:center; font-size:11.5px; color:var(--ink-faint); font-family:var(--mono); padding:4px 0 8px; }
+
+  @media print{
+    .sheet{ background:#fff; padding:0; }
+    section,header.masthead{ break-inside:avoid; border-color:#ccc; }
+    body{ --bg:#fff; --panel:#fff; }
+  }
+</style>
+
+<div class="sheet">
+  <div class="page">
+
+    <header class="masthead">
+      <p class="eyebrow">Prototipo automotriz #2 · Lógica digital + Arduino</p>
+      <h1>Alarma de Cinturón de Seguridad Obligatorio</h1>
+      <p class="lead">Hoja de montaje: la decisión de seguridad se resuelve por hardware (compuertas 74HC), y el Arduino sólo lee el resultado y gestiona el aviso (LED + buzzer).</p>
+      <div class="meta">
+        <span class="chip">Arduino Uno R3</span>
+        <span class="chip">74HC04 · NOT</span>
+        <span class="chip">74HC08 · AND</span>
+        <span class="chip">2 pulsadores</span>
+        <span class="chip">Rocker 3 pines</span>
+        <span class="chip">Buzzer activo</span>
+      </div>
+      <div class="formula">ALARMA = <b>PESO</b> · <b>MARCHA</b> · <b class="neg">CINTURÓN</b></div>
+    </header>
+
+    <!-- ============ PINOUT ============ -->
+    <section>
+      <div class="sec-head">
+        <span class="sec-num">01</span>
+        <h2>Pinout y conexión de cada pin</h2>
+        <span class="sec-note">muesca arriba = pin 1 arriba-izquierda</span>
+      </div>
+      <figure>
+        <svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" role="img" font-family="ui-sans-serif, system-ui, sans-serif">
+          <title>Pinout de los chips 74HC04 y 74HC08</title>
+          <desc>Cada pin numerado y etiquetado con su conexion.</desc>
+          <text x="450" y="24" font-size="15" fill="#5b6675" text-anchor="middle" font-weight="700">Pinout y conexión de cada pin</text>
+          <g font-size="10" fill="#7a8698">
+            <rect x="238" y="37" width="12" height="10" rx="2" fill="#2f6fed"/><text x="254" y="46">señal</text>
+            <rect x="308" y="37" width="12" height="10" rx="2" fill="#d64545"/><text x="324" y="46">+5V</text>
+            <rect x="368" y="37" width="12" height="10" rx="2" fill="#3b3b3b"/><text x="384" y="46">GND</text>
+            <rect x="428" y="37" width="12" height="10" rx="2" fill="#1f9d55"/><text x="444" y="46">a Arduino</text>
+            <rect x="516" y="37" width="12" height="10" rx="2" fill="#9aa3ad"/><text x="532" y="46">libre</text>
+          </g>
+          <text x="245" y="86" font-size="12" fill="#4f46e5" text-anchor="middle" font-weight="700">74HC04 — 6 inversores (NOT)</text>
+          <rect x="200" y="98" width="90" height="204" rx="6" fill="#f7f7f8" stroke="#333" stroke-width="2"/>
+          <path d="M238 98 a7 7 0 0 0 14 0" fill="#e2e2e6" stroke="#333" stroke-width="1"/>
+          <circle cx="210" cy="112" r="3" fill="#333"/>
+          <g stroke-width="2">
+            <line x1="200" y1="110" x2="186" y2="110" stroke="#2f6fed"/><line x1="200" y1="140" x2="186" y2="140" stroke="#2f6fed"/><line x1="200" y1="170" x2="186" y2="170" stroke="#9aa3ad"/><line x1="200" y1="200" x2="186" y2="200" stroke="#9aa3ad"/><line x1="200" y1="230" x2="186" y2="230" stroke="#9aa3ad"/><line x1="200" y1="260" x2="186" y2="260" stroke="#9aa3ad"/><line x1="200" y1="290" x2="186" y2="290" stroke="#3b3b3b"/>
+          </g>
+          <g font-size="10" fill="#333" font-weight="700">
+            <text x="206" y="114">1·1A</text><text x="206" y="144">2·1Y</text><text x="206" y="174" fill="#9aa3ad">3·2A</text><text x="206" y="204" fill="#9aa3ad">4·2Y</text><text x="206" y="234" fill="#9aa3ad">5·3A</text><text x="206" y="264" fill="#9aa3ad">6·3Y</text><text x="206" y="294">7·GND</text>
+          </g>
+          <g font-size="9.5" text-anchor="end" font-weight="600">
+            <text x="182" y="114" fill="#2f6fed">CINTURÓN →</text><text x="182" y="144" fill="#2f6fed">→ 74HC08 p5</text><text x="182" y="174" fill="#9aa3ad">libre → GND</text><text x="182" y="204" fill="#9aa3ad">libre</text><text x="182" y="234" fill="#9aa3ad">libre → GND</text><text x="182" y="264" fill="#9aa3ad">libre</text><text x="182" y="294" fill="#3b3b3b">→ GND (−)</text>
+          </g>
+          <g stroke-width="2">
+            <line x1="290" y1="110" x2="304" y2="110" stroke="#d64545"/><line x1="290" y1="140" x2="304" y2="140" stroke="#9aa3ad"/><line x1="290" y1="170" x2="304" y2="170" stroke="#9aa3ad"/><line x1="290" y1="200" x2="304" y2="200" stroke="#9aa3ad"/><line x1="290" y1="230" x2="304" y2="230" stroke="#9aa3ad"/><line x1="290" y1="260" x2="304" y2="260" stroke="#9aa3ad"/><line x1="290" y1="290" x2="304" y2="290" stroke="#9aa3ad"/>
+          </g>
+          <g font-size="10" fill="#333" font-weight="700" text-anchor="end">
+            <text x="284" y="114">14·VCC</text><text x="284" y="144" fill="#9aa3ad">13·6A</text><text x="284" y="174" fill="#9aa3ad">12·6Y</text><text x="284" y="204" fill="#9aa3ad">11·5A</text><text x="284" y="234" fill="#9aa3ad">10·5Y</text><text x="284" y="264" fill="#9aa3ad">9·4A</text><text x="284" y="294" fill="#9aa3ad">8·4Y</text>
+          </g>
+          <g font-size="9.5" font-weight="600">
+            <text x="308" y="114" fill="#d64545">→ +5V</text><text x="308" y="144" fill="#9aa3ad">libre → GND</text><text x="308" y="174" fill="#9aa3ad">libre</text><text x="308" y="204" fill="#9aa3ad">libre → GND</text><text x="308" y="234" fill="#9aa3ad">libre</text><text x="308" y="264" fill="#9aa3ad">libre → GND</text><text x="308" y="294" fill="#9aa3ad">libre</text>
+          </g>
+          <text x="655" y="86" font-size="12" fill="#4f46e5" text-anchor="middle" font-weight="700">74HC08 — 4 compuertas AND</text>
+          <rect x="610" y="98" width="90" height="204" rx="6" fill="#f7f7f8" stroke="#333" stroke-width="2"/>
+          <path d="M648 98 a7 7 0 0 0 14 0" fill="#e2e2e6" stroke="#333" stroke-width="1"/>
+          <circle cx="620" cy="112" r="3" fill="#333"/>
+          <g stroke-width="2">
+            <line x1="610" y1="110" x2="596" y2="110" stroke="#2f6fed"/><line x1="610" y1="140" x2="596" y2="140" stroke="#2f6fed"/><line x1="610" y1="170" x2="596" y2="170" stroke="#2f6fed"/><line x1="610" y1="200" x2="596" y2="200" stroke="#2f6fed"/><line x1="610" y1="230" x2="596" y2="230" stroke="#2f6fed"/><line x1="610" y1="260" x2="596" y2="260" stroke="#1f9d55"/><line x1="610" y1="290" x2="596" y2="290" stroke="#3b3b3b"/>
+          </g>
+          <g font-size="10" fill="#333" font-weight="700">
+            <text x="616" y="114">1·1A</text><text x="616" y="144">2·1B</text><text x="616" y="174">3·1Y</text><text x="616" y="204">4·2A</text><text x="616" y="234">5·2B</text><text x="616" y="264">6·2Y</text><text x="616" y="294">7·GND</text>
+          </g>
+          <g font-size="9.5" text-anchor="end" font-weight="600">
+            <text x="592" y="114" fill="#2f6fed">PESO →</text><text x="592" y="144" fill="#2f6fed">MARCHA →</text><text x="592" y="174" fill="#2f6fed">→ pin 4 (puente)</text><text x="592" y="204" fill="#2f6fed">← pin 3 (puente)</text><text x="592" y="234" fill="#2f6fed">← 74HC04 p2</text><text x="592" y="264" fill="#1f9d55">→ Arduino D2</text><text x="592" y="294" fill="#3b3b3b">→ GND (−)</text>
+          </g>
+          <g stroke-width="2">
+            <line x1="700" y1="110" x2="714" y2="110" stroke="#d64545"/><line x1="700" y1="140" x2="714" y2="140" stroke="#9aa3ad"/><line x1="700" y1="170" x2="714" y2="170" stroke="#9aa3ad"/><line x1="700" y1="200" x2="714" y2="200" stroke="#9aa3ad"/><line x1="700" y1="230" x2="714" y2="230" stroke="#9aa3ad"/><line x1="700" y1="260" x2="714" y2="260" stroke="#9aa3ad"/><line x1="700" y1="290" x2="714" y2="290" stroke="#9aa3ad"/>
+          </g>
+          <g font-size="10" fill="#333" font-weight="700" text-anchor="end">
+            <text x="694" y="114">14·VCC</text><text x="694" y="144" fill="#9aa3ad">13·4B</text><text x="694" y="174" fill="#9aa3ad">12·4A</text><text x="694" y="204" fill="#9aa3ad">11·4Y</text><text x="694" y="234" fill="#9aa3ad">10·3B</text><text x="694" y="264" fill="#9aa3ad">9·3A</text><text x="694" y="294" fill="#9aa3ad">8·3Y</text>
+          </g>
+          <g font-size="9.5" font-weight="600">
+            <text x="718" y="114" fill="#d64545">→ +5V</text><text x="718" y="144" fill="#9aa3ad">libre → GND</text><text x="718" y="174" fill="#9aa3ad">libre → GND</text><text x="718" y="204" fill="#9aa3ad">libre</text><text x="718" y="234" fill="#9aa3ad">libre → GND</text><text x="718" y="264" fill="#9aa3ad">libre → GND</text><text x="718" y="294" fill="#9aa3ad">libre</text>
+          </g>
+        </svg>
+        <figcaption>Sólo se usan los pines resaltados; los marcados “libre → GND” son entradas de compuertas sobrantes.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ============ PROTOBOARD ============ -->
+    <section>
+      <div class="sec-head">
+        <span class="sec-num">02</span>
+        <h2>Montaje en protoboard (vista POV)</h2>
+        <span class="sec-note">chips a caballo sobre el canal central</span>
+      </div>
+      <figure>
+        <svg viewBox="0 0 830 470" xmlns="http://www.w3.org/2000/svg" role="img" font-family="ui-sans-serif, system-ui, sans-serif">
+          <title>Montaje en protoboard</title>
+          <desc>Protoboard con los chips, pulsadores, rocker, LED, resistencias y buzzer cableados al Arduino.</desc>
+          <defs><pattern id="hole" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="2.1" fill="#b9b6ac"/></pattern></defs>
+          <rect x="185" y="55" width="600" height="390" rx="10" fill="#ecebe6" stroke="#c9c6bd" stroke-width="1.5"/>
+          <rect x="200" y="60" width="580" height="40" fill="url(#hole)"/>
+          <line x1="200" y1="70" x2="780" y2="70" stroke="#e06666" stroke-width="1.4"/><line x1="200" y1="90" x2="780" y2="90" stroke="#5a7fd0" stroke-width="1.4"/>
+          <rect x="200" y="400" width="580" height="40" fill="url(#hole)"/>
+          <line x1="200" y1="410" x2="780" y2="410" stroke="#e06666" stroke-width="1.4"/><line x1="200" y1="430" x2="780" y2="430" stroke="#5a7fd0" stroke-width="1.4"/>
+          <text x="195" y="74" font-size="13" fill="#c0392b" font-weight="700" text-anchor="end">+</text><text x="195" y="434" font-size="13" fill="#2c5aa0" font-weight="700" text-anchor="end">−</text>
+          <rect x="200" y="140" width="580" height="100" fill="url(#hole)"/><rect x="200" y="260" width="580" height="100" fill="url(#hole)"/>
+          <rect x="200" y="240" width="580" height="20" fill="#dfddd5"/>
+          <text x="197" y="153" font-size="8" fill="#a9a69c" text-anchor="end">A</text><text x="197" y="333" font-size="8" fill="#a9a69c" text-anchor="end">J</text>
+          <rect x="243" y="226" width="134" height="52" rx="4" fill="#2b2b2b" stroke="#000"/><path d="M303 226 a7 7 0 0 0 14 0" fill="#151515"/>
+          <text x="310" y="255" font-size="9" fill="#eee" text-anchor="middle" font-weight="700">74HC04</text>
+          <g stroke="#c9c9c9" stroke-width="2"><line x1="250" y1="270" x2="250" y2="266"/><line x1="270" y1="270" x2="270" y2="266"/><line x1="290" y1="270" x2="290" y2="266"/><line x1="310" y1="270" x2="310" y2="266"/><line x1="330" y1="270" x2="330" y2="266"/><line x1="350" y1="270" x2="350" y2="266"/><line x1="370" y1="270" x2="370" y2="266"/></g>
+          <g font-size="7" fill="#888" text-anchor="middle"><text x="250" y="281">1</text><text x="270" y="281">2</text><text x="290" y="281">3</text><text x="310" y="281">4</text><text x="330" y="281">5</text><text x="350" y="281">6</text><text x="370" y="281">7</text></g>
+          <rect x="403" y="226" width="134" height="52" rx="4" fill="#2b2b2b" stroke="#000"/><path d="M463 226 a7 7 0 0 0 14 0" fill="#151515"/>
+          <text x="470" y="255" font-size="9" fill="#eee" text-anchor="middle" font-weight="700">74HC08</text>
+          <g stroke="#c9c9c9" stroke-width="2"><line x1="410" y1="270" x2="410" y2="266"/><line x1="430" y1="270" x2="430" y2="266"/><line x1="450" y1="270" x2="450" y2="266"/><line x1="470" y1="270" x2="470" y2="266"/><line x1="490" y1="270" x2="490" y2="266"/><line x1="510" y1="270" x2="510" y2="266"/><line x1="530" y1="270" x2="530" y2="266"/></g>
+          <g font-size="7" fill="#888" text-anchor="middle"><text x="410" y="281">1</text><text x="430" y="281">2</text><text x="450" y="281">3</text><text x="470" y="281">4</text><text x="490" y="281">5</text><text x="510" y="281">6</text><text x="530" y="281">7</text></g>
+          <rect x="564" y="228" width="32" height="44" rx="3" fill="#3a4a63" stroke="#26324a"/><circle cx="580" cy="250" r="7" fill="#8fa0bd" stroke="#6b7c99"/><text x="580" y="428" font-size="9" fill="#555" text-anchor="middle" font-weight="600">PESO</text>
+          <rect x="624" y="228" width="32" height="44" rx="3" fill="#3a4a63" stroke="#26324a"/><circle cx="640" cy="250" r="7" fill="#8fa0bd" stroke="#6b7c99"/><text x="640" y="428" font-size="9" fill="#555" text-anchor="middle" font-weight="600">CINTURÓN</text>
+          <text x="710" y="262" font-size="9" fill="#555" text-anchor="middle" font-weight="600">ROCKER MARCHA</text>
+          <rect x="682" y="266" width="56" height="30" rx="4" fill="#1f1f1f" stroke="#000"/><rect x="688" y="270" width="44" height="12" rx="2" fill="#c0392b"/>
+          <g stroke="#b0b0b0" stroke-width="2"><line x1="690" y1="296" x2="690" y2="290"/><line x1="710" y1="296" x2="710" y2="290"/><line x1="730" y1="296" x2="730" y2="290"/></g>
+          <text x="690" y="308" font-size="7.5" fill="#888" text-anchor="middle">1 libre</text><text x="710" y="318" font-size="7.5" fill="#c0392b" text-anchor="middle">2 común +5V</text><text x="730" y="308" font-size="7.5" fill="#2f6fed" text-anchor="middle">3 salida</text>
+          <text x="320" y="276" font-size="8.5" fill="#555" text-anchor="middle">LED</text><circle cx="320" cy="282" r="7" fill="#e74c3c" stroke="#b03225"/>
+          <line x1="310" y1="290" x2="310" y2="284" stroke="#c9c9c9" stroke-width="2"/><line x1="330" y1="310" x2="330" y2="284" stroke="#c9c9c9" stroke-width="2"/>
+          <circle cx="380" cy="298" r="11" fill="#111" stroke="#000"/><circle cx="380" cy="298" r="3" fill="#333"/><text x="380" y="301" font-size="7" fill="#e74c3c" text-anchor="middle">+</text>
+          <line x1="370" y1="310" x2="370" y2="304" stroke="#c9c9c9" stroke-width="2"/><line x1="390" y1="330" x2="390" y2="304" stroke="#c9c9c9" stroke-width="2"/><text x="380" y="345" font-size="8.5" fill="#555" text-anchor="middle">BUZZER</text>
+          <g>
+            <line x1="570" y1="350" x2="570" y2="358" stroke="#9a8f6f" stroke-width="2"/><rect x="565" y="358" width="10" height="20" rx="2" fill="#d9c9a3" stroke="#b8a56f"/><rect x="565" y="362" width="10" height="2.5" fill="#7a5b3a"/><rect x="565" y="368" width="10" height="2.5" fill="#7a5b3a"/><line x1="570" y1="378" x2="570" y2="430" stroke="#9a8f6f" stroke-width="2"/><text x="578" y="372" font-size="8.5" fill="#777">10k</text>
+            <line x1="630" y1="350" x2="630" y2="358" stroke="#9a8f6f" stroke-width="2"/><rect x="625" y="358" width="10" height="20" rx="2" fill="#d9c9a3" stroke="#b8a56f"/><rect x="625" y="362" width="10" height="2.5" fill="#7a5b3a"/><rect x="625" y="368" width="10" height="2.5" fill="#7a5b3a"/><line x1="630" y1="378" x2="630" y2="430" stroke="#9a8f6f" stroke-width="2"/><text x="638" y="372" font-size="8.5" fill="#777">10k</text>
+            <line x1="730" y1="350" x2="730" y2="358" stroke="#9a8f6f" stroke-width="2"/><rect x="725" y="358" width="10" height="20" rx="2" fill="#d9c9a3" stroke="#b8a56f"/><rect x="725" y="362" width="10" height="2.5" fill="#7a5b3a"/><rect x="725" y="368" width="10" height="2.5" fill="#7a5b3a"/><line x1="730" y1="378" x2="730" y2="430" stroke="#9a8f6f" stroke-width="2"/><text x="738" y="372" font-size="8.5" fill="#777">10k</text>
+            <line x1="330" y1="310" x2="330" y2="318" stroke="#9a8f6f" stroke-width="2"/><rect x="325" y="318" width="10" height="20" rx="2" fill="#d9c9a3" stroke="#b8a56f"/><rect x="325" y="322" width="10" height="2.5" fill="#7a5b3a"/><rect x="325" y="328" width="10" height="2.5" fill="#7a5b3a"/><line x1="330" y1="338" x2="330" y2="430" stroke="#9a8f6f" stroke-width="2"/><text x="338" y="332" font-size="8.5" fill="#777">330Ω</text>
+          </g>
+          <g fill="none" stroke-width="2.6" stroke-linecap="round" opacity="0.92">
+            <path d="M170 150 Q190 54 210 70" stroke="#d64545"/><path d="M170 182 Q200 166 230 430" stroke="#3b3b3b"/><path d="M250 150 Q250 54 250 70" stroke="#d64545"/><path d="M370 350 Q370 334 370 430" stroke="#3b3b3b"/><path d="M410 150 Q410 54 410 70" stroke="#d64545"/><path d="M530 350 Q530 334 530 430" stroke="#3b3b3b"/><path d="M630 290 Q440 274 250 290" stroke="#2f6fed"/><path d="M270 310 Q380 294 490 310" stroke="#2f6fed"/><path d="M450 290 Q460 274 470 290" stroke="#2f6fed"/><path d="M570 310 Q490 294 410 310" stroke="#2f6fed"/><path d="M730 290 Q580 274 430 290" stroke="#2f6fed"/><path d="M510 330 Q340 204 170 220" stroke="#2f6fed"/><path d="M570 190 Q570 54 570 70" stroke="#d64545"/><path d="M630 190 Q630 54 630 70" stroke="#d64545"/><path d="M710 290 Q710 54 710 70" stroke="#d64545"/><path d="M170 252 Q240 236 310 290" stroke="#1f9d55"/><path d="M170 286 Q270 270 370 310" stroke="#1f9d55"/><path d="M390 330 Q390 314 390 430" stroke="#3b3b3b"/>
+          </g>
+          <rect x="22" y="120" width="150" height="210" rx="10" fill="#0b6b5f" stroke="#053f38" stroke-width="2"/>
+          <text x="97" y="145" font-size="13" fill="#eafff9" text-anchor="middle" font-weight="700">ARDUINO UNO</text>
+          <g font-size="9" fill="#cdeee7" text-anchor="end">
+            <rect x="150" y="142" width="20" height="16" rx="2" fill="#0a544a"/><circle cx="170" cy="150" r="3" fill="#d64545"/><text x="145" y="153">5V</text>
+            <rect x="150" y="174" width="20" height="16" rx="2" fill="#0a544a"/><circle cx="170" cy="182" r="3" fill="#3b3b3b"/><text x="145" y="185">GND</text>
+            <rect x="150" y="212" width="20" height="16" rx="2" fill="#0a544a"/><circle cx="170" cy="220" r="3" fill="#2f6fed"/><text x="145" y="223">D2</text>
+            <rect x="150" y="244" width="20" height="16" rx="2" fill="#0a544a"/><circle cx="170" cy="252" r="3" fill="#1f9d55"/><text x="145" y="255">D12</text>
+            <rect x="150" y="278" width="20" height="16" rx="2" fill="#0a544a"/><circle cx="170" cy="286" r="3" fill="#1f9d55"/><text x="145" y="289">D8</text>
+          </g>
+          <g font-size="10" fill="#888">
+            <line x1="250" y1="42" x2="270" y2="42" stroke="#d64545" stroke-width="3" stroke-linecap="round"/><text x="275" y="45">+5V</text>
+            <line x1="345" y1="42" x2="365" y2="42" stroke="#3b3b3b" stroke-width="3" stroke-linecap="round"/><text x="370" y="45">GND</text>
+            <line x1="440" y1="42" x2="460" y2="42" stroke="#2f6fed" stroke-width="3" stroke-linecap="round"/><text x="465" y="45">señal</text>
+            <line x1="535" y1="42" x2="555" y2="42" stroke="#1f9d55" stroke-width="3" stroke-linecap="round"/><text x="560" y="45">salida Arduino</text>
+          </g>
+        </svg>
+        <figcaption>Vista conceptual fiel a los pines. Para la columna exacta de cada hoyo, guíate por la tabla siguiente.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ============ TABLA ============ -->
+    <section>
+      <div class="sec-head">
+        <span class="sec-num">03</span>
+        <h2>Tabla de conexiones</h2>
+      </div>
+      <div class="legend">
+        <span><span class="w" style="background:#2f6fed"></span>señal</span>
+        <span><span class="w" style="background:#d64545"></span>+5V</span>
+        <span><span class="w" style="background:#3b3b3b"></span>GND</span>
+        <span><span class="w" style="background:#1f9d55"></span>a Arduino</span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Desde</th><th>Hacia</th><th>Tipo</th></tr></thead>
+          <tbody>
+            <tr><td>Pulsador PESO (salida)</td><td>74HC08 · pin 1 (1A)</td><td>señal</td></tr>
+            <tr><td>Rocker MARCHA · pin 3</td><td>74HC08 · pin 2 (1B)</td><td>señal</td></tr>
+            <tr><td>Pulsador CINTURÓN (salida)</td><td>74HC04 · pin 1 (1A)</td><td>señal</td></tr>
+            <tr><td>74HC04 · pin 2 (1Y)</td><td>74HC08 · pin 5 (2B)</td><td>señal</td></tr>
+            <tr><td>74HC08 · pin 3 (1Y)</td><td>74HC08 · pin 4 (2A) — puente</td><td>señal</td></tr>
+            <tr><td>74HC08 · pin 6 (2Y)</td><td>Arduino · D2</td><td>a Arduino</td></tr>
+            <tr><td>Arduino · D12</td><td>LED (+) → 330Ω → GND</td><td>a Arduino</td></tr>
+            <tr><td>Arduino · D8</td><td>Buzzer (+) ; (−) → GND</td><td>a Arduino</td></tr>
+            <tr><td>Rocker MARCHA · pin 2 (común)</td><td>+5V</td><td>+5V</td></tr>
+            <tr><td>74HC04 / 74HC08 · pin 14</td><td>+5V</td><td>+5V</td></tr>
+            <tr><td>74HC04 / 74HC08 · pin 7</td><td>GND</td><td>GND</td></tr>
+            <tr><td>Cada señal de entrada</td><td>10kΩ (pull-down) → GND</td><td>GND</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ NOTAS ============ -->
+    <section>
+      <div class="sec-head">
+        <span class="sec-num">04</span>
+        <h2>Notas de montaje</h2>
+      </div>
+      <div class="notes">
+        <div class="note tip">
+          <h3>✓ Capacitor: opcional</h3>
+          <p>En protoboard a baja velocidad <b>no hace falta</b> el capacitor de 100 nF. Móntalo sin él; sólo añádelo si notas lecturas erráticas.</p>
+        </div>
+        <div class="note warn">
+          <h3>⚠ Entradas sin usar</h3>
+          <p>Las entradas de las compuertas que no uses (marcadas <code>libre → GND</code>) conéctalas a <b>GND</b> para evitar ruido y calentamiento.</p>
+        </div>
+        <div class="note info">
+          <h3>◇ Rocker de 3 pines</h3>
+          <p>Pin central <b>común → +5V</b>, un lateral <b>→ señal</b> (con su 10k a GND), el otro lateral sin usar.</p>
+        </div>
+        <div class="note info">
+          <h3>◇ Buzzer activo</h3>
+          <p>Se controla con <code>digitalWrite</code> (no <code>tone()</code>): genera su propio tono. (+) al pin D8, (−) a GND.</p>
+        </div>
+        <div class="note tip">
+          <h3>✓ Pull-down = pulsado es 1</h3>
+          <p>Con la resistencia de 10k a GND: pulsador/rocker <b>presionado/ON = 5V (1)</b>; suelto/OFF = 0V (0).</p>
+        </div>
+        <div class="note info">
+          <h3>◇ Lógica del sistema</h3>
+          <p>La alarma suena sólo con <b>peso + marcha + cinturón suelto</b> a la vez. El Arduino sólo lee D2 y hace parpadear LED + buzzer.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer>Prototipo #2 · Alarma de cinturón · 74HC04 + 74HC08 + Arduino Uno</footer>
+
+  </div>
+</div>
