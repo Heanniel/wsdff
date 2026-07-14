@@ -51,6 +51,24 @@ app.use((req, res, next) => {
     next();
 });
 
+// --- Diagnóstico temporal de la base de datos (quitar cuando el login funcione) ---
+// Visita /health/db en el navegador para ver qué motor usa y si conecta.
+app.get('/health/db', async (req, res) => {
+    const db = require('./db/pool');
+    const info = {
+        db_client: process.env.DB_CLIENT || (process.env.DATABASE_URL ? 'postgres (auto)' : 'mysql (por defecto)'),
+        has_database_url: !!process.env.DATABASE_URL,
+        has_session_secret: !!process.env.SESSION_SECRET,
+        node_env: process.env.NODE_ENV || null
+    };
+    try {
+        await db.query('SELECT 1');
+        res.json({ ok: true, ...info });
+    } catch (e) {
+        res.status(500).json({ ok: false, ...info, error_code: e.code || null, error: e.message });
+    }
+});
+
 // --- Rutas ---
 app.use('/', pageRoutes);      // páginas, estáticos, subidas y bloqueo de archivos
 app.use('/', authRoutes);      // /login, /logout, /me
