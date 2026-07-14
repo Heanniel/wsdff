@@ -4,7 +4,7 @@
 // ============================================================================
 const express = require('express');
 const cors = require('cors');
-const session = require('express-session');
+const cookieSession = require('cookie-session');
 const helmet = require('helmet');
 
 const pageRoutes = require('./routes/pageRoutes');
@@ -24,16 +24,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: CORS_ORIGIN, credentials: true }));
 
-app.use(session({
-    secret: process.env.SESSION_SECRET || 'cambia-esto',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        httpOnly: true,
-        sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production', // requiere HTTPS en producción
-        maxAge: 1000 * 60 * 60 * 8 // 8 horas
-    }
+// Confía en el proxy (Vercel) para que las cookies "secure" funcionen tras HTTPS.
+app.set('trust proxy', 1);
+
+// Sesión guardada en una cookie firmada (sin estado): funciona en serverless,
+// donde no hay memoria compartida entre invocaciones. Los datos de sesión son
+// pequeños (usuario sin contraseña), así que caben de sobra en la cookie.
+app.use(cookieSession({
+    name: 'sc_session',
+    keys: [process.env.SESSION_SECRET || 'cambia-esto'],
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production', // HTTPS en producción (Vercel)
+    maxAge: 1000 * 60 * 60 * 8 // 8 horas
 }));
 
 // Log de peticiones (nunca registra contraseñas). Silenciado durante los tests.

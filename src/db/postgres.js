@@ -9,14 +9,27 @@ const { Pool, types } = require('pg');
 // string, que es también el comportamiento de mysql2 para DECIMAL.
 types.setTypeParser(20, (v) => (v === null ? null : parseInt(v, 10)));
 
-const pool = new Pool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'servicio_comunitario',
-    port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 5432,
-    max: 10
-});
+// Supabase (y la mayoría de Postgres gestionados) exigen SSL.
+// Opción A (recomendada en Vercel/Supabase): definir DATABASE_URL con la cadena
+//   de conexión del "Connection Pooler" de Supabase (puerto 6543).
+// Opción B: definir DB_HOST/DB_USER/DB_PASSWORD/DB_PORT sueltos + DB_SSL=true.
+const pool = new Pool(
+    process.env.DATABASE_URL
+        ? {
+            connectionString: process.env.DATABASE_URL,
+            ssl: { rejectUnauthorized: false },
+            max: 10
+        }
+        : {
+            host: process.env.DB_HOST || 'localhost',
+            user: process.env.DB_USER || 'postgres',
+            password: process.env.DB_PASSWORD || '',
+            database: process.env.DB_NAME || 'servicio_comunitario',
+            port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 5432,
+            ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
+            max: 10
+        }
+);
 
 // Convierte los marcadores "?" de MySQL a "$1, $2, ..." de PostgreSQL.
 function convertir(sql) {

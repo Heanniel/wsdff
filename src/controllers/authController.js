@@ -76,12 +76,10 @@ async function login(req, res) {
     }
 }
 
-// LOGOUT - Destruye la sesión del servidor
+// LOGOUT - Borra la sesión (cookie-session: basta con anularla)
 function logout(req, res) {
-    req.session.destroy(() => {
-        res.clearCookie('connect.sid');
-        res.json({ message: 'Sesión cerrada' });
-    });
+    req.session = null;
+    res.json({ message: 'Sesión cerrada' });
 }
 
 // ME - Devuelve el usuario de la sesión actual

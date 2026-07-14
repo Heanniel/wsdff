@@ -1,0 +1,10 @@
+# No subir a Vercel lo que no hace falta en runtime
+node_modules
+uploads
+migrations
+tests
+*.sql
+hash-passwords.js
+run-migration.js
+.env
+.env.local
