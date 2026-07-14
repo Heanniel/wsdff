@@ -1545,3 +1545,58 @@ tr:hover td {
     max-width: 100%;
   }
 }
+
+/* ============================================================
+   Responsive — ajustes de diseño para tablet y móvil
+   (solo añade reglas; no modifica el diseño de escritorio)
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Barra superior y cabeceras: que puedan envolver en vez de apretarse */
+  .top-bar {
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+  }
+  .section-header {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .section-header-actions {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 1.25rem 1rem;
+  }
+  /* Formularios a una sola columna en móvil */
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  /* Barra superior apilada en pantallas muy pequeñas */
+  .top-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .user-profile {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .greeting h1 {
+    font-size: 1.2rem;
+  }
+  /* Celdas de tabla más compactas (la tabla sigue con scroll horizontal) */
+  th,
+  td {
+    padding: 0.85rem 0.7rem;
+    font-size: 0.9rem;
+  }
+  .modal-header {
+    padding: 1.25rem;
+  }
+  #modal-editar-persona .modal-inner form {
+    padding: 1.25rem;
+  }
+}

@@ -132,3 +132,26 @@ body {
     display: none;
 }
 
+/* ===== Responsive: móvil ===== */
+@media (max-width: 480px) {
+    body {
+        padding: 16px;
+    }
+    .login_contenedor {
+        padding: 36px 24px;
+        border-radius: 20px;
+    }
+    .login-t h2 {
+        font-size: 2rem;
+    }
+    .login-t p {
+        margin-bottom: 28px;
+        font-size: 1rem;
+    }
+    .role-selector label,
+    .cuadros-texto input,
+    .login-btn {
+        font-size: 1rem;
+    }
+}
+
