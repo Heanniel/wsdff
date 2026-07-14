@@ -1,8 +1,8 @@
 // ============================================================================
 //  Controlador de bombonas (inventario, compras/pagos y estadísticas)
 // ============================================================================
-const fs = require('fs');
 const db = require('../db/pool');
+const storage = require('../storage');
 
 const CALLES = ['Calle 1', 'Calle 2', 'Calle 3', 'Calle 4', 'Calle 5', 'Calle 6', 'Calle 7', 'Callejón'];
 
@@ -94,15 +94,14 @@ async function comprar(req, res) {
     const qty43 = parseInt(req.body.qty43) || 0;
     const monto = parseFloat(req.body.monto);
     const metodo = req.body.metodo;
-    const referencia_foto = req.file ? `/uploads/referencias/${req.file.filename}` : null;
+    // La foto está en memoria (req.file.buffer); se persiste solo si la compra
+    // pasa todas las validaciones (ver más abajo), para no dejar huérfanos.
+    let referencia_foto = null;
 
-    // Si se rechaza la compra, borra la imagen recién subida para no dejar huérfanos.
-    const limpiarArchivo = () => { if (req.file) fs.unlink(req.file.path, () => {}); };
-
-    if (!id_registro) { limpiarArchivo(); return res.status(400).json({ error: 'Registro no especificado.' }); }
-    if (isNaN(monto) || monto <= 0) { limpiarArchivo(); return res.status(400).json({ error: 'El monto pagado es obligatorio y debe ser mayor que 0.' }); }
+    if (!id_registro) return res.status(400).json({ error: 'Registro no especificado.' });
+    if (isNaN(monto) || monto <= 0) return res.status(400).json({ error: 'El monto pagado es obligatorio y debe ser mayor que 0.' });
     const metodosValidos = ['Efectivo', 'Transferencia', 'Pago Móvil'];
-    if (!metodo || !metodosValidos.includes(metodo)) { limpiarArchivo(); return res.status(400).json({ error: 'El método de pago es obligatorio y debe ser válido.' }); }
+    if (!metodo || !metodosValidos.includes(metodo)) return res.status(400).json({ error: 'El método de pago es obligatorio y debe ser válido.' });
 
     let conn;
     try {
@@ -116,7 +115,6 @@ async function comprar(req, res) {
         );
         if (regRows.length === 0) {
             await conn.rollback();
-            limpiarArchivo();
             return res.status(404).json({ error: 'Registro no encontrado.' });
         }
         const reg = regRows[0];
@@ -147,9 +145,11 @@ async function comprar(req, res) {
                      || validarDisp(qty27, disp27, '27kg') || validarDisp(qty43, disp43, '43kg');
         if (errDisp) {
             await conn.rollback();
-            limpiarArchivo();
             return res.status(400).json({ error: errDisp });
         }
+
+        // Validaciones superadas: ahora sí persistimos la foto (si la hay).
+        if (req.file) referencia_foto = await storage.guardar(req.file);
 
         // ¿Inicia un nuevo lote de ventas? (sin compras en los últimos 15 días)
         const periodoLoteDias = 15;
@@ -173,7 +173,7 @@ async function comprar(req, res) {
         });
     } catch (e) {
         if (conn) { try { await conn.rollback(); } catch (_) {} }
-        limpiarArchivo();
+        if (referencia_foto) { try { await storage.borrar(referencia_foto); } catch (_) {} }
         console.error('Error en /bombonas/comprar:', e);
         res.status(500).json({ error: 'Error al procesar la compra.' });
     } finally {

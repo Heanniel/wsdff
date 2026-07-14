@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const { requireAuth, requirePage } = require('../middleware/auth');
-const { UPLOAD_DIR } = require('../middleware/upload');
+const storage = require('../storage');
 
 const router = express.Router();
 const ROOT = path.join(__dirname, '..', '..'); // raíz del proyecto
@@ -26,10 +26,20 @@ router.use((req, res, next) => {
 });
 
 // Fotos de referencia de pagos: solo accesibles con sesión iniciada.
-router.get('/uploads/referencias/:file', requireAuth, (req, res) => {
+router.get('/uploads/referencias/:file', requireAuth, async (req, res) => {
     const nombre = path.basename(req.params.file); // evita path traversal
-    const ruta = path.join(UPLOAD_DIR, nombre);
-    if (!ruta.startsWith(UPLOAD_DIR)) return res.status(400).send('Ruta no válida');
+    // Con Supabase: redirige a una URL firmada de corta duración.
+    if (storage.usarSupabase) {
+        try {
+            const url = await storage.urlFirmada('/uploads/referencias/' + nombre);
+            return res.redirect(url);
+        } catch (e) {
+            return res.status(404).send('Imagen no encontrada');
+        }
+    }
+    // En disco local: sirve el archivo directamente.
+    const ruta = path.join(storage.LOCAL_DIR, nombre);
+    if (!ruta.startsWith(storage.LOCAL_DIR)) return res.status(400).send('Ruta no válida');
     res.sendFile(ruta, (err) => {
         if (err) res.status(404).send('Imagen no encontrada');
     });
